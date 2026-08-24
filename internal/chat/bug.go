@@ -31,10 +31,10 @@ func (c *Conversation) SendDateSuggestion(itineraryID, date string, available bo
 		return model.ChatMessage{}, err
 	}
 	message := EvaluateDateSuggestion(PrepareDateMessage(itineraryID, sequence, date), available)
-	previous, previousErr := c.Engine.LastMessage(itineraryID)
-	if previousErr == nil && !available {
-		message.Status = previous.Status
-	}
+	// Each message keeps the status and failure reason produced by its own
+	// evaluation. Do not carry over the previous message's status, otherwise a
+	// later date suggestion can mask its own failure (or a prior upload's) and
+	// hide the reason from the user.
 	if message.Status == "" {
 		return model.ChatMessage{}, fmt.Errorf("message status was not assigned")
 	}
